@@ -25,7 +25,7 @@ jobs:
           go-version: '1.21'
 
       - name: Cache Go modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -56,7 +56,7 @@ jobs:
         run: go tool cover -html=coverage.out -o coverage.html
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
           path: backend/coverage.html
@@ -65,7 +65,7 @@ jobs:
         run: go build -v -o crypto-marketplace ./main.go
 
       - name: Upload backend binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-binary
           path: backend/crypto-marketplace
@@ -100,7 +100,7 @@ jobs:
           WS_BASE_URL: ws://localhost:8080/ws
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: frontend/.output
