@@ -83,9 +83,19 @@ func (h *Hub) NewClient(conn *websocket.Conn) *Client {
 	}
 }
 
+// Register adds a client to the hub
+func (h *Hub) Register(client *Client) {
+	h.register <- client
+}
+
+// Unregister removes a client from the hub
+func (h *Hub) Unregister(client *Client) {
+	h.unregister <- client
+}
+
 func (c *Client) ReadPump() {
 	defer func() {
-		c.hub.unregister <- c
+		c.hub.Unregister(c)
 		c.conn.Close()
 	}()
 

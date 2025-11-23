@@ -34,7 +34,7 @@ func (h *WebSocketHandler) HandleConnection(w http.ResponseWriter, r *http.Reque
 	}
 
 	client := h.hub.NewClient(conn)
-	h.hub.register <- client
+	h.hub.Register(client)
 
 	go client.WritePump()
 	go client.ReadPump()
