@@ -15,16 +15,16 @@ import (
 )
 
 type ProductHandler struct {
-	products        map[string]models.Product
-	mu              sync.RWMutex
-	hub             *websocket.Hub
+	products         map[string]models.Product
+	mu               sync.RWMutex
+	hub              *websocket.Hub
 	coinGeckoService *services.CoinGeckoService
 }
 
 func NewProductHandler(hub *websocket.Hub, cgService *services.CoinGeckoService) *ProductHandler {
 	handler := &ProductHandler{
-		products:        make(map[string]models.Product),
-		hub:             hub,
+		products:         make(map[string]models.Product),
+		hub:              hub,
 		coinGeckoService: cgService,
 	}
 
