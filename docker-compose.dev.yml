@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: crypto-marketplace-backend-dev
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - ALLOWED_ORIGINS=http://localhost:3000
+    volumes:
+      - ./backend:/app
+      - /app/crypto-marketplace  # Don't mount the binary
+    working_dir: /app
+    command: ["go", "run", "main.go"]
+    networks:
+      - crypto-network-dev
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: crypto-marketplace-frontend-dev
+    ports:
+      - "3000:3000"
+      - "24678:24678"  # Nuxt DevTools
+    environment:
+      - NODE_ENV=development
+      - API_BASE_URL=http://localhost:8080/api
+      - WS_BASE_URL=ws://localhost:8080/ws
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # Don't mount node_modules
+      - /app/.nuxt
+      - /app/.output
+    working_dir: /app
+    command: ["npm", "run", "dev"]
+    depends_on:
+      - backend
+    networks:
+      - crypto-network-dev
+    restart: unless-stopped
+
+networks:
+  crypto-network-dev:
+    driver: bridge
