@@ -11,12 +11,15 @@ This project consists of two separate applications:
 
 ## Features
 
-- ✅ Real-time product updates via WebSocket
-- ✅ CRUD operations for cryptocurrency products
-- ✅ Responsive UI with modern design
-- ✅ Live connection status indicator
-- ✅ Auto-reconnection on WebSocket disconnect
-- ✅ RESTful API with CORS support
+- ✅ **Real-time Cryptocurrency Data** - Powered by CoinGecko API
+- ✅ **Live Price Updates** - Auto-updates every 30 seconds via WebSocket
+- ✅ **Top 20 Cryptocurrencies** - Displays leading cryptocurrencies by market cap
+- ✅ **CRUD Operations** - Create, read, update, and delete cryptocurrency products
+- ✅ **Responsive UI** - Modern design with live connection status
+- ✅ **Auto-reconnection** - WebSocket automatically reconnects on disconnect
+- ✅ **RESTful API** - Clean API with CORS support
+- ✅ **CI/CD Pipeline** - GitHub Actions for automated testing and deployment
+- ✅ **Docker Support** - Production and development Docker configurations
 
 ## Project Structure
 
@@ -103,6 +106,7 @@ Connect to `ws://localhost:8080/ws` to receive real-time updates.
 - Go 1.21+
 - Gorilla Mux (HTTP router)
 - Gorilla WebSocket
+- CoinGecko API (Real-time crypto data)
 - CORS middleware
 
 ### Frontend
@@ -111,11 +115,91 @@ Connect to `ws://localhost:8080/ws` to receive real-time updates.
 - TypeScript
 - Native WebSocket API
 
+## Real-time Data Integration
+
+This marketplace uses the **CoinGecko API** to fetch real-time cryptocurrency data:
+
+- **Data Source**: [CoinGecko API](https://www.coingecko.com/en/api)
+- **Update Frequency**: Every 30 seconds
+- **Data Points**: Price, 24h change, volume, market cap
+- **Rate Limit**: 30 calls per minute (free tier)
+- **No Authentication Required**: Free public endpoints
+
+The backend automatically:
+1. Loads the top 20 cryptocurrencies on startup
+2. Updates prices every 30 seconds from CoinGecko
+3. Broadcasts updates to all connected WebSocket clients
+4. Falls back to sample data if the API is unavailable
+
+## Using Docker
+
+### Development Environment
+
+```bash
+# Start with hot-reloading
+make dev
+
+# Or manually
+docker-compose -f docker-compose.dev.yml up
+```
+
+### Production Environment
+
+```bash
+# Build and start
+make prod
+
+# Or manually
+docker-compose up --build -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+### Available Make Commands
+
+```bash
+make help          # Show all available commands
+make dev           # Start development environment
+make prod          # Start production environment
+make test          # Run all tests
+make lint          # Run linters
+make clean         # Clean build artifacts
+make health        # Check service health
+```
+
+## CI/CD Pipeline
+
+The project includes GitHub Actions workflows for:
+
+### CI Pipeline (`.github/workflows/ci.yml`)
+- Runs on push to main, develop, and claude/* branches
+- Backend: Go tests, linting, and build
+- Frontend: npm build and linting
+- Security: Trivy vulnerability scanning
+- Docker: Build test for both services
+
+### Deploy Pipeline (`.github/workflows/deploy.yml`)
+- Automated deployment to staging/production
+- Docker image building and pushing
+- SSH deployment to servers
+- Health checks after deployment
+- Slack notifications
+
+**Required Secrets**:
+- `DOCKER_USERNAME` & `DOCKER_PASSWORD`
+- `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_KEY`
+- `API_BASE_URL` & `WS_BASE_URL`
+- `SLACK_WEBHOOK` (optional)
+
 ## Development
 
 ### Backend Development
 
-The backend includes sample cryptocurrency data for testing. You can modify the `initSampleProducts()` function in `backend/handlers/product.go` to change the initial data.
+The backend fetches real-time cryptocurrency data from CoinGecko on startup. If the API is unavailable, it falls back to sample data. The `backend/services/coingecko.go` service handles all API interactions with automatic rate limiting.
 
 ### Frontend Development
 

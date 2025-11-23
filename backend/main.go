@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto-marketplace/handlers"
+	"crypto-marketplace/services"
 	"crypto-marketplace/websocket"
 	"log"
 	"net/http"
@@ -16,8 +17,11 @@ func main() {
 	hub := websocket.NewHub()
 	go hub.Run()
 
+	// Initialize CoinGecko service
+	coinGeckoService := services.NewCoinGeckoService()
+
 	// Initialize handlers
-	productHandler := handlers.NewProductHandler(hub)
+	productHandler := handlers.NewProductHandler(hub, coinGeckoService)
 	wsHandler := handlers.NewWebSocketHandler(hub)
 
 	// Setup router
@@ -34,6 +38,13 @@ func main() {
 	// WebSocket route
 	r.HandleFunc("/ws", wsHandler.HandleConnection)
 
+	// Health check endpoint
+	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"healthy","service":"crypto-marketplace"}`))
+	}).Methods("GET")
+
 	// CORS configuration
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:3001"},
@@ -44,8 +55,8 @@ func main() {
 
 	handler := c.Handler(r)
 
-	// Start price simulator (simulates real-time price updates)
-	go simulatePriceUpdates(productHandler, hub)
+	// Start real-time price updater (fetches from CoinGecko every 30 seconds)
+	go updateRealTimePrices(productHandler)
 
 	// Start server
 	port := ":8080"
@@ -58,13 +69,19 @@ func main() {
 	}
 }
 
-// simulatePriceUpdates simulates real-time cryptocurrency price changes
-func simulatePriceUpdates(handler *handlers.ProductHandler, hub *websocket.Hub) {
-	ticker := time.NewTicker(5 * time.Second)
+// updateRealTimePrices fetches real-time price updates from CoinGecko
+func updateRealTimePrices(handler *handlers.ProductHandler) {
+	// Wait 30 seconds before first update to respect rate limits
+	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		// This is a simple simulation - in production, you'd connect to real crypto APIs
-		log.Println("Simulating price updates...")
+		log.Println("Fetching real-time price updates from CoinGecko...")
+
+		if err := handler.UpdatePricesFromCoinGecko(); err != nil {
+			log.Printf("Error updating prices: %v", err)
+		} else {
+			log.Println("Successfully updated cryptocurrency prices")
+		}
 	}
 }
