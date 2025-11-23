@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -33,7 +33,7 @@ COPY --from=builder /app/.output ./.output
 COPY --from=builder /app/package*.json ./
 
 # Install only production dependencies
-RUN npm ci --only=production
+RUN npm install --only=production
 
 # Expose port
 EXPOSE 3000
